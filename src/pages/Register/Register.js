@@ -1,10 +1,17 @@
 import Button from 'react-bootstrap/Button';
 import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form';
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import app from '../firebase/firebase.init';
+
+
+const auth = getAuth(app);
+
 
 
 const Register = () => {
     const [errorPassword, steErrorPassword] = useState('');
+    const [success, setSuccess] = useState(false);
     const handleFormSubmit = event => {
         event.preventDefault();
         const form = event.target;
@@ -34,6 +41,30 @@ const Register = () => {
         }
         steErrorPassword('');
 
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(result => {
+                const user = result.user;
+                console.log(user);
+                setSuccess(user);
+                form.reset(); //empty form
+                verifyEmail();
+
+            })
+            .catch((error) => {
+                console.log('Error : ', error);
+                steErrorPassword(error.message)
+
+            });
+
+        const verifyEmail = () => {
+            sendEmailVerification(auth.currentUser)
+                .then(() => {
+                    alert('Please check email and verify')
+
+                });
+
+        }
+
     }
 
     return (
@@ -57,6 +88,9 @@ const Register = () => {
                 </Form.Group>
                 {
                     <p className='text-danger my-2'>{errorPassword}</p>
+                }
+                {
+                    success && <p className='text-success'>Registered Successfully</p>
                 }
 
                 <Button variant="primary" type="submit">
